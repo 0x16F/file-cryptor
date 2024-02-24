@@ -4,7 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"crypto/sha512"
+	"crypto/sha256"
 	"encoding/base64"
 	"flag"
 	"io"
@@ -79,7 +79,7 @@ func Decrypt(ciphertext []byte, key []byte) ([]byte, error) {
 }
 
 func hashKey(key string) []byte {
-	hasher := sha512.New()
+	hasher := sha256.New()
 	hasher.Write([]byte(key))
 	return hasher.Sum(nil)
 }
