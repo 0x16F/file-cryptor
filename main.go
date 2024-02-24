@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"crypto/sha512"
 	"encoding/base64"
 	"flag"
 	"io"
@@ -77,6 +78,12 @@ func Decrypt(ciphertext []byte, key []byte) ([]byte, error) {
 	return plaintext, nil
 }
 
+func hashKey(key string) []byte {
+	hasher := sha512.New()
+	hasher.Write([]byte(key))
+	return hasher.Sum(nil)
+}
+
 func main() {
 	action := flag.String("a", "encrypt", "encrypt or decrypt")
 	key := flag.String("k", "", "aes key")
@@ -84,6 +91,12 @@ func main() {
 	output := flag.String("o", "", "name of output file")
 
 	flag.Parse()
+
+	if *key == "" {
+		log.Fatal("key is required")
+	}
+
+	hashedKey := hashKey(*key)
 
 	data, err := GetTextFromFile(*filepath)
 	if err != nil {
@@ -93,7 +106,7 @@ func main() {
 	switch *action {
 	case "encrypt":
 		{
-			encrypted, err := Encrypt(data, []byte(*key))
+			encrypted, err := Encrypt(data, hashedKey)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -120,7 +133,7 @@ func main() {
 				log.Fatal(err)
 			}
 
-			decrypted, err := Decrypt(decoded, []byte(*key))
+			decrypted, err := Decrypt(decoded, hashedKey)
 			if err != nil {
 				log.Fatal(err)
 			}
